@@ -1,0 +1,102 @@
+.mf-form {
+  padding: 10px;
+  box-sizing: border-box;
+}
+.mf-form * {
+  box-sizing: border-box;
+}
+.mf-form legend {
+  font-size: 1.4rem;
+  border-bottom: 1px solid #d2d2d2;
+  margin-bottom: 20px;
+}
+.mf-field {
+  margin-bottom: 20px;
+}
+.mf-field label {
+  font-size: 1.1em;
+  display: block;
+  width: 100%;
+  padding-bottom: 5px;
+}
+.mf-field input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="color"]):not([type="button"]):not([type="reset"]),
+.mf-field select,
+.mf-field textarea,
+.mf-field textarea[type="text"] {
+  font-family: inherit;
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #d2d6dd;
+  font-size: 1em;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+  display: block;
+  width: 100%;
+}
+.mf-field-hint {
+  margin: 10px 0 0;
+  color: #7e818b;
+  font-size: 1rem;
+}
+.mf-submit-button,
+.mf-cancel-button {
+  padding: 0.5rem 0.75rem;
+  color: #7e818b;
+  background: #d2d6dd;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 1rem;
+  line-height: 1;
+  text-align: center;
+  -webkit-transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+  -webkit-transform: scale(1);
+  transform: scale(1);
+  display: inline-block;
+  cursor: pointer;
+}
+.mf-submit-button {
+  color: #fff;
+  background-color: var(--color-primary, #1a9f60);
+}
+.mf-form-actions {
+  display: flex;
+  justify-content: space-between;
+}
+.mf-form-actions .mf-submit-button {
+  order: 1;
+}
+.mf-form-actions .mf-cancel-button {
+  order: 0;
+}
+.mf-checklist > label:first-child,
+.mf-radiolist > label:first-child {
+    display: block; 
+}
+.mf-checklist-options,
+.mf-radiolist-options {
+    border-radius: 4px;
+    border: 1px solid var(--color-lightGrey, #ccc);
+    padding: .8rem 1rem;
+}
+.mf-checklist .mf-checklist-option,
+.mf-radiolist .mf-radiolist-option {
+    display: block;
+    width: 100%;
+}
+.mf-checklist.mf-checklist--inline .mf-checklist-option,
+.mf-radiolist.mf-radiolist--inline .mf-radiolist-option {
+    display: inline-block;
+    width: auto;
+    margin-right: 10px;
+}
+.mf-error [data-error-message] {
+    color: var(--color-danger, #ff0000);
+}
+.mf-error input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="color"]):not([type="button"]):not([type="reset"]),
+.mf-error select,
+.mf-error textarea {
+    border-color: var(--color-danger, #ff0000);
+}
+

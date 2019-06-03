@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Micro Forms</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="/micro-forms.css">
+    <!-- Polyfills only needed for Firefox and Edge. -->
+    <script src="https://unpkg.com/@webcomponents/webcomponentsjs@latest/webcomponents-loader.js"></script>
+</head>
+
+<body>
+    <script type="module" src="./micro-forms.js"></script>
+
+    <micro-form scope="example"></micro-form>
+
+    <script>
+        let form = document.querySelector('micro-form');
+
+        form.setAttribute('def', JSON.stringify({
+            title: 'Example Form',
+            id: 'exampleForm',
+            fields: [
+                { name: 'firstname', label: 'Firstname', placeholder: 'Enter your firstname.', required: true },
+                { name: 'lastname', label: 'Lastname', placeholder: 'Enter your lastname.', required: true },
+                { name: 'birthDate', label: 'Date of Birth', type: 'date', value: new Date(), placeholder: 'Enter your birthdate.', required: true },
+                { name: 'gender', label: 'Gender', type: 'radiolist', selected: 'male', options: [ { text: 'Male', value: 'male'},  {text: 'Female', value: 'female'}] },
+                { name: 'maritalStatus', label: 'Marital Status', type: 'radiolist', selected: 'single', options: [ { text: 'Married', value: 'married'},  {text: 'Single', value: 'single'}] },
+                { name: 'interests', label: 'Interests', type: 'checklist', inline: true, options: [ { text: 'News', value: 'news'},  {text: 'Sports', value: 'sports'}] },
+                { name: 'comments', label: 'Comments', type: 'textarea', placeholder: 'Add any comments' }
+            ]
+        }));
+    
+        window.addEventListener('mf-connected', function (e) {
+            e.detail.api.submitting((values) => {
+                values.errors = values.errors || {};
+                if (!values.firstname) {                    
+                    values.errors['firstname'] = 'Firstname is required!';
+                }
+                if (!values.lastname) {
+                    values.errors['lastname'] = 'Lastname is required!';
+                }
+                
+                let guy = 'Mr.';
+                let gal = values['maritalStatus'] === 'married' ? 'Mrs.' : 'Ms.';
+                let title = values['gender'] === 'male' ? guy : gal;
+
+                values['fullname'] = `${title} ${values['firstname'] || ''} ${values['lastname'] || ''}`;
+
+                return values;
+            });
+            e.detail.api.validating(({name, value}) => {
+                if (name === 'firstname') {
+                    return !value ? 'Firstname is required!' : '';
+                } else if (name === 'lastname') {
+                    return !value ? 'Lastname is required!' : ''
+                }
+                return '';
+            });
+        })
+
+        window.addEventListener('mf-cancel', function (e) {
+            console.log('cancel', e.detail.id, document.getElementById(e.detail.id));
+            document.getElementById(e.detail.id).reset();
+        })
+
+        window.addEventListener('mf-submit', function (e) {
+            console.log('submit', e.detail);
+        })
+    </script>
+
+</body>
+
+</html>
