@@ -7,8 +7,25 @@ const inputDate = val => {
     return json ? json.slice(0, 10) : null;
 }
 
+export const dataList = ({id, list}) => {
+    var split = list.split('|');
+    return html`
+        <datalist id=${id}>
+        ${split.reduce((prev, current) => {
+            if (current) {
+                prev.push(html`<option value=${current}>`)
+            }
+            return prev;
+        }, [])}
+        </datalist>
+    `; 
+}
+
 export const fieldLabel = ({name, label}) => html`<label for="${name}">${label}</label>`
-export const textInput = ({name, id, placeholder = '', value = '', required, onChange}) => html`<input name=${name} ?id=${id} type="text" placeholder=${placeholder} .value="${value}" .required=${required} @change=${onChange} />`
+export const textInput = ({name, id, placeholder = '', value = '', datalist, list, required, onChange}) => [
+    html`<input name=${name} ?id=${id} type="text" list=${datalist} placeholder=${placeholder} .value="${value}" .required=${required} @change=${onChange} />`,
+    datalist ? dataList({id: datalist, list}): ''
+];
 export const numberInput = ({name, id, value = '', onChange, required, step = 1, min, max}) => 
     html`<input @change=${onChange} name=${name} ?id=${id} type="number" ?required=${required} step=${step} ?min=${min} ?max=${max} value="${value}" />`;
 
@@ -43,6 +60,13 @@ export const radioList = ({name, label, options = [], selected, onChange, clss, 
         <p data-error-message="${name}"></p>
     </div>`
 
+export const section = ({children = [], clss, id, onChange, hidden = false}) => 
+html`<div class="${clss['section']}" id="${id}" style="display: ${hidden ? 'none' : 'block'}">
+    ${children.map(child => map[child.type] ? map[child.type]({...child, onChange, clss}) : '')}
+</div>`;
+
+
+
 const map = {
     'text': textInput,
     'number': numberInput,
@@ -50,13 +74,15 @@ const map = {
     'select': selectInput,
     'textarea': textArea,
     'radiolist': radioList,
-    'checklist': checkList
+    'checklist': checkList,
+    'section': section,
+    'datalist': dataList
 }
 
 export const field = obj => {
     const { label, name, type, hint, clss } = obj;
     
-    if (['radiolist', 'checklist'].indexOf(type) !== -1) {
+    if (['radiolist', 'checklist', 'datalist', 'section'].indexOf(type) !== -1) {
         return map[type](obj);
     }
 
@@ -69,3 +95,4 @@ export const field = obj => {
         </div>
     `
 }
+

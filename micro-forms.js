@@ -15,6 +15,7 @@ const defaultClasses = {
   cancel: "mf-cancel-button",
   radiolist: "mf-radiolist",
   checklist: "mf-checklist",
+  section: "mf-section",
   error: "mf-error"
 };
 
@@ -35,6 +36,7 @@ class MicroForm extends LitElement {
     this.__setErrors = this.__setErrors.bind(this);
     this.validating = this.validating.bind(this);
     this.submitting = this.submitting.bind(this);
+    this.changing = this.changing.bind(this);
 
     this.formId = "";
     this.bus = new Bus();
@@ -48,7 +50,8 @@ class MicroForm extends LitElement {
     let evt = `${scope + "-" || ""}mf-connected`;
     const api = {
       submitting: this.submitting,
-      validating: this.validating
+      validating: this.validating,
+      changing: this.changing
     }
     if (evt !== "mf-connected") {
       this.__emitEvent(evt, {
@@ -69,16 +72,29 @@ class MicroForm extends LitElement {
   validating(fn) {
     this.bus.addFilter("validating", fn);
   }
+  changing(fn) {
+    this.bus.addFilter("changing", fn);
+  }
   render() {
     this.def = JSON.parse(this.getAttribute("def") || "{fields: []}") || {};
     if (!this.data) {
+      const setData = (c, p) => {
+        if (c.hasOwnProperty("value")) {
+          p[c.name] = c.value;
+        }
+        if (c.hasOwnProperty("selected")) {
+          p[c.name] = c.selected;
+        }
+      }
       this.data = this.def.fields.reduce((prev, current) => {
-        if (current.hasOwnProperty("value")) {
-          prev[current.name] = current.value;
+        if (current.type === 'section') {
+          current.children.forEach(child => {
+            setData(child, prev);
+          })
+        } else {
+          setData(current, prev);
         }
-        if (current.hasOwnProperty("selected")) {
-          prev[current.name] = current.selected;
-        }
+        
         return prev;
       }, {});
     }
@@ -124,7 +140,8 @@ class MicroForm extends LitElement {
     `;
   }
   __change(e) {
-    const { name, value, type } = e.target;    
+    const { name, value, type } = e.target;  
+    let oldValue = this.data[name];  
     if (type === "checkbox") {
       let options = [].slice.call(
         document.querySelectorAll(`input[name='${name}']:checked`),
@@ -138,12 +155,15 @@ class MicroForm extends LitElement {
         .join(", ");
       this.data[name] = values;
     } else {
+      
+      this.bus.applyFilters("changing", { name, oldValue, newValue: value }, this.data);
+
       this.data[name] = value;
     }
 
-    const error = this.bus.applyFilters("validating", { name, value: {} });
-    console.log("change", name, value, error);
+    const error = this.bus.applyFilters("validating", { name, value: {} });    
     this.__setErrors({ [name]: error || "" });
+    
   }
   __cancel(e) {
     e.preventDefault();
