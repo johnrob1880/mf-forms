@@ -158,8 +158,10 @@ class MicroForm extends LitElement {
       ];
   }
   __change(e) {
+    const error = '';
     const { name, value, type } = e.target;  
-    let oldValue = this.data[name];  
+    let oldValue = this.data[name]; 
+     
     if (type === "checkbox") {
       let options = [].slice.call(
         document.querySelectorAll(`input[name='${name}']:checked`),
@@ -173,15 +175,16 @@ class MicroForm extends LitElement {
         .join(", ");
         this.bus.applyFilters("changing", { name, oldValue, newValue: values }, this.data);
       this.data[name] = values;
-    } else {
-      
+
+      error = this.bus.applyFilters("validating", {name, values});  
+      this.__setErrors({ [name]: error });
+    } else {      
       this.bus.applyFilters("changing", { name, oldValue, newValue: value }, this.data);
-
       this.data[name] = value;
-    }
 
-    const error = this.bus.applyFilters("validating", '');  
-    this.__setErrors({ [name]: error });
+      error = this.bus.applyFilters("validating", {name, values});  
+      this.__setErrors({ [name]: error });
+    }
     
   }
   __cancel(e) {
