@@ -34,9 +34,11 @@ class MicroForm extends LitElement {
     this.__cancel = this.__cancel.bind(this);
     this.__emitEvent = this.__emitEvent.bind(this);
     this.__setErrors = this.__setErrors.bind(this);
+    this.__renderField = this.__renderField.bind(this);
     this.validating = this.validating.bind(this);
     this.submitting = this.submitting.bind(this);
     this.changing = this.changing.bind(this);
+    this.rendering = this.rendering.bind(this);
 
     this.formId = "";
     this.bus = new Bus();
@@ -51,7 +53,8 @@ class MicroForm extends LitElement {
     const api = {
       submitting: this.submitting,
       validating: this.validating,
-      changing: this.changing
+      changing: this.changing,
+      rendering: this.rendering
     }
     if (evt !== "mf-connected") {
       this.__emitEvent(evt, {
@@ -74,6 +77,9 @@ class MicroForm extends LitElement {
   }
   changing(fn) {
     this.bus.addFilter("changing", fn);
+  }
+  rendering(fn) {
+    this.bus.addFilter("rendering", fn);
   }
   render() {
     this.def = JSON.parse(this.getAttribute("def") || "{fields: []}") || {};
@@ -122,7 +128,7 @@ class MicroForm extends LitElement {
             `
           : ""}
         ${fields.map(f =>
-          field({ ...f, onChange: this.__change, clss: this.clss })
+          this.__renderField(f, field({ ...f, onChange: this.__change, clss: this.clss }))
         )}
         <div class="${this.clss["actions"]}">
           <button class="${this.clss["submit"]}" @click=${this.__submit}>
@@ -139,6 +145,18 @@ class MicroForm extends LitElement {
       </form>
     `;
   }
+  __renderField(field, el) {
+    let x = this.bus.applyFilters('rendering', {field, el}) || {};
+    const { before = '', after = '', el: elem = el } = x;
+
+    const isFunc = obj => obj && typeof obj === 'function';
+
+    return [
+        isFunc(before) ? before(html) : before, 
+        isFunc(elem) ? elem(html) : elem, 
+        isFunc(after) ? after(html) : after
+      ];
+  }
   __change(e) {
     const { name, value, type } = e.target;  
     let oldValue = this.data[name];  
@@ -153,6 +171,7 @@ class MicroForm extends LitElement {
           return prev;
         }, [])
         .join(", ");
+        this.bus.applyFilters("changing", { name, oldValue, newValue: values }, this.data);
       this.data[name] = values;
     } else {
       
@@ -161,8 +180,8 @@ class MicroForm extends LitElement {
       this.data[name] = value;
     }
 
-    const error = this.bus.applyFilters("validating", { name, value: {} });    
-    this.__setErrors({ [name]: error || "" });
+    const error = this.bus.applyFilters("validating", '');  
+    this.__setErrors({ [name]: error });
     
   }
   __cancel(e) {
@@ -194,14 +213,12 @@ class MicroForm extends LitElement {
     e.preventDefault();
     let scope = this.getAttribute("scope");
     let evt = `${scope + "-" || ""}mf-submit`;
-    let form = this.querySelectorAll('form')[0];
-
+    
     delete this.data["errors"];
 
     const payload = this.bus.applyFilters("submitting", this.data);
 
     if (Object.keys(payload.errors || {}).length) {
-      // show errors?
       this.__setErrors(payload.errors);
       return;
     }

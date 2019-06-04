@@ -10,6 +10,15 @@
     <link rel="stylesheet" href="/micro-forms.css">
     <!-- Polyfills only needed for Firefox and Edge. -->
     <script src="https://unpkg.com/@webcomponents/webcomponentsjs@latest/webcomponents-loader.js"></script>
+    <style>
+        .card {
+            background-color: #ebebeb;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -29,7 +38,8 @@
                 { name: 'birthDate', label: 'Date of Birth', type: 'date', value: new Date(), placeholder: 'Enter your birthdate.', required: true },
                 { name: 'gender', label: 'Gender', type: 'radiolist', selected: 'male', options: [ { text: 'Male', value: 'male'},  {text: 'Female', value: 'female'}] },
                 { id: 'maritalSection', type: 'section', hidden: true, children: [
-                    { name: 'maritalStatus', label: 'Marital Status', type: 'radiolist', selected: 'single', options: [ { text: 'Married', value: 'married'},  {text: 'Single', value: 'single'}] }
+                    { name: 'maritalStatus', label: 'Marital Status', type: 'radiolist', selected: 'single', options: [ { text: 'Married', value: 'married'},  {text: 'Single', value: 'single'}] },
+                    { name: 'maidenName', label: 'Maiden Name', type: 'text' }
                 ]},                
                 { name: 'interests', label: 'Interests', type: 'checklist', inline: true, options: [ { text: 'News', value: 'news'},  {text: 'Sports', value: 'sports'}, {text: 'Fashion', value: 'fashion'}] },
                 { name: 'comments', label: 'Comments', type: 'textarea', placeholder: 'Add any comments' }
@@ -39,9 +49,18 @@
         window.addEventListener('mf-connected', function (e) {
             const { api } = e.detail;
 
+            api.rendering(({field, el}) => {
+                if (field.type === 'section') {
+                    return { el: (html) => html`<div id="maritalSectionWrap" class="card" hidden>${el}</div>` }
+                }
+                return { el }
+                
+            });
             api.changing(({name, oldValue, newValue}, values) => {
-                if (name === 'gender') {
+                if (name === 'gender') {                    
                     document.querySelector('#maritalSection').style.display = 
+                        (newValue === 'female' ? 'block' : 'none');
+                    document.querySelector("#maritalSectionWrap").style.display = 
                         (newValue === 'female' ? 'block' : 'none');
                 }
             });

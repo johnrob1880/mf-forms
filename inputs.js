@@ -62,7 +62,7 @@ export const radioList = ({name, label, options = [], selected, onChange, clss, 
 
 export const section = ({children = [], clss, id, onChange, hidden = false}) => 
 html`<div class="${clss['section']}" id="${id}" style="display: ${hidden ? 'none' : 'block'}">
-    ${children.map(child => map[child.type] ? map[child.type]({...child, onChange, clss}) : '')}
+    ${children.map(child => map[child.type] ? field({...child, onChange, clss}) : '')}
 </div>`;
 
 
