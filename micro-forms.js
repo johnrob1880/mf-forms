@@ -158,7 +158,7 @@ class MicroForm extends LitElement {
       ];
   }
   __change(e) {
-    const error = '';
+    let error = '';
     const { name, value, type } = e.target;  
     let oldValue = this.data[name]; 
      
@@ -182,7 +182,7 @@ class MicroForm extends LitElement {
       this.bus.applyFilters("changing", { name, oldValue, newValue: value }, this.data);
       this.data[name] = value;
 
-      error = this.bus.applyFilters("validating", {name, values});  
+      error = this.bus.applyFilters("validating", {name, value});  
       this.__setErrors({ [name]: error });
     }
     
