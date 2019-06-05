@@ -4,6 +4,8 @@ import {
 } from "https://unpkg.com/lit-element/lit-element.js?module";
 
 import { field } from "./inputs.js";
+import { isEmpty } from "./rules/index.js";
+
 import Bus from "./bus.js";
 
 const defaultClasses = {
@@ -82,7 +84,10 @@ class MicroForm extends LitElement {
     this.bus.addFilter("rendering", fn);
   }
   render() {
-    this.def = JSON.parse(this.getAttribute("def") || "{fields: []}") || {};
+    this.def = this.getAttribute("def") ? JSON.parse(this.getAttribute("def")) : {};
+    if (isEmpty(this.def)) {
+      return '';
+    }
     if (!this.data) {
       const setData = (c, p) => {
         if (c.hasOwnProperty("value")) {
@@ -177,7 +182,7 @@ class MicroForm extends LitElement {
       this.data[name] = values;
 
       error = this.bus.applyFilters("validating", {name, values});  
-      this.__setErrors({ [name]: error });
+      this.__setErrors({ [name]: isEmpty(error) ? '' : error });
     } else {      
       this.bus.applyFilters("changing", { name, oldValue, newValue: value }, this.data);
       this.data[name] = value;
@@ -191,11 +196,19 @@ class MicroForm extends LitElement {
     e.preventDefault();
     let scope = this.getAttribute("scope");
 
+    const api = {
+      reset: () => {
+        document.getElementById(this.formId).reset();
+        this.data = {};        
+      }
+    }
+
     this.__emitEvent(`${scope + "-" || ""}mf-cancel`, {
       scope,
-      id: this.formId
+      id: this.formId,
+      api
     });
-    this.__emitEvent("mf-cancel", { scope, id: this.formId });
+    this.__emitEvent("mf-cancel", { scope, id: this.formId, api });
   }
   __setErrors(errors) {
     const { error = "mf-error" } = this.clss || {};
