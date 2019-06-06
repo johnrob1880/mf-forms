@@ -1,4 +1,4 @@
-import { isNumber, isInteger, isEmpty, isDate, isArray, isEmail } from '../rules/index.js';
+import { isNumber, isInteger, isEmpty, isDate, isArray, isEmail, isFunction } from '../rules/index.js';
 
 const explodeRules = rules => {
     return Object.keys(rules).reduce((prev, current) => {
@@ -48,11 +48,20 @@ export const ValidateMixin = (base) => class ValidateMixin extends base {
 
     connectedCallback() {
         super.connectedCallback();
-        window.addEventListener("mf-connected", e => {
+
+        if (!this.scope) {
+            console.log('Warning - scope is not set. Bypassing validation!');
+            return;
+        }
+
+        let key = `${this.scope}-mf-connected`;
+
+        window.addEventListener(key, e => {
             const { api } = e.detail;
+
             api.submitting(values => {
                 if (isEmpty(this.validations)) {
-                    return;
+                    return values;
                 }
                 let errors = this.validate(values, this.validations);
                 if (!isEmpty(errors)) {
@@ -67,6 +76,7 @@ export const ValidateMixin = (base) => class ValidateMixin extends base {
                 let validator = this.validations[name];
                 if (validator) {                    
                     let errors = this.validate({[name]: value}, {[name]: validator});
+                    
                     if (!isEmpty(errors)) {
                         return isArray(errors[name]) ? errors[name].join(" ") : errors[name];
                     }
@@ -88,10 +98,32 @@ export const ValidateMixin = (base) => class ValidateMixin extends base {
 
         const getName = name => {
             if (this.definition) {
-                let field = JSON.parse(this.definition).fields.filter(n => n.name === name)[0];
+                let field = (typeof this.definition === 'string' 
+                    ? JSON.parse(this.definition) 
+                    : this.definition).fields.filter(n => n.name === name)[0];
                 return field ? (field.label || name) : name;
             }
             return name;
+        }
+
+        const getMessage = (name, rule, args) => {
+            let key = `${rule}:${name}`;
+
+            // translations
+            if (this.translations && this.translations[this.locale]) {
+                let msg = this.translations[this.locale][key];
+                if (!isEmpty(msg)) {
+                    return msg;
+                }
+            }
+            
+            if (this.messages[key]) {
+                return isFunction(this.messages[key]) ? 
+                    this.messages[key](args) : 
+                    this.messages[key];
+            } else {
+                return isFunction(this.messages[rule]) ? this.messages[rule](args) : this.messages[rule]
+            }
         }
 
         let errors = Object.keys(exploded).reduce((prev, current) => {
@@ -101,11 +133,10 @@ export const ValidateMixin = (base) => class ValidateMixin extends base {
                     let args = {value: val, name: getName(current), [rule.rule]: rule.arg};
                     if (!validators[rule.rule](args)) {
                         prev[current] = prev[current] || [];
-                        if (this.messages[rule.rule]) {
-                            prev[current].push(this.messages[rule.rule](args));
-                        } else {
-                            prev[current].push('Invalid.')
-                        }                        
+                        let msg = getMessage(current, rule.rule, args);
+                        if (msg) {
+                            prev[current].push(msg);
+                        }                       
                     }
                 }
             })

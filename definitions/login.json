@@ -1,0 +1,16 @@
+{
+    "title": "Login",
+    "id": "loginForm",
+    "description": "Use the form below to login to your account",
+    "submitText": "Login",
+    "cancel": true,
+    "framed": true,
+    "fields": [
+        { "name": "username", "label": "Username" },
+        { "name": "password", "label": "Password", "type": "password" }
+    ],
+    "validations": {
+        "username": "required",
+        "password": "required"
+    }
+}

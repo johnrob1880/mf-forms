@@ -26,6 +26,10 @@ export const textInput = ({name, id, placeholder = '', value = '', datalist, lis
     html`<input name=${name} ?id=${id} type="text" list=${datalist} placeholder=${placeholder} .value="${value}" .required=${required} @change=${onChange} />`,
     datalist ? dataList({id: datalist, list}): ''
 ];
+
+export const passwordInput = ({name, id, placeholder = '', required, onChange}) => 
+    html`<input name=${name} ?id=${id} type="password" placeholder=${placeholder} .required=${required} @change=${onChange} />`
+
 export const numberInput = ({name, id, value = '', onChange, required, step = 1, min, max}) => 
     html`<input @change=${onChange} name=${name} ?id=${id} type="number" ?required=${required} step=${step} ?min=${min} ?max=${max} value="${value}" />`;
 
@@ -69,6 +73,7 @@ html`<div class="${clss['section']}" id="${id}" style="display: ${hidden ? 'none
 
 const map = {
     'text': textInput,
+    'password': passwordInput,
     'number': numberInput,
     'date': dateInput,
     'select': selectInput,
