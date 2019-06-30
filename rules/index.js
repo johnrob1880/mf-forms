@@ -1,7 +1,7 @@
 export const isDefined = obj => obj !== null && obj !== undefined;
 export const isFunction = value => typeof value === 'function';
 export const isString = value => typeof value === 'string';
-export const isNumber = value => typeof value === 'number' && !isNaN(value);
+export const isNumber = value => !isNaN(value);
 export const isInteger = value => isNumber(value) && value % 1 === 0;
 export const isArray = value => ({}.toString.call(value) === '[object Array]');
 export const isObject = obj => obj === Object(obj);
